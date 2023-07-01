@@ -28,7 +28,7 @@ public class ValuesPoll : IHostedService, IDisposable
         if (!serial.Connected || serial.Busy) return;
 
         logger.LogDebug("Fetching values...");
-        var values = serial.GetValues();
+        int[] values = await serial.GetValues();
         logger.LogDebug(String.Join(',', values));
         await hub.Clients.All.SendAsync("values", values);
     }
