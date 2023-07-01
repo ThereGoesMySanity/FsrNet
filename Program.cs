@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<LocalProfileOptions>(builder.Configuration.GetSection("LocalProfile"));
 builder.Services.Configure<SerialConnectionOptions>(builder.Configuration.GetSection("SerialConnection"));
+builder.Services.AddOptions<ValuesPollOptions>().Bind(builder.Configuration.GetSection("ValuesPoll"))
+            .ValidateDataAnnotations();
 
 // Add services to the container.
 builder.Services.AddSignalR();

@@ -1,29 +1,39 @@
 using FsrNet.Controllers;
+using FsrNet.Options;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 
 namespace FsrNet.Services;
 
-public class ValuesPoll : IHostedService, IDisposable
+public class ValuesPoll : BackgroundService, IDisposable
 {
-    private Timer timer;
     private readonly SerialConnection serial;
     private readonly IHubContext<ProfileHub> hub;
     private readonly ILogger<ValuesPoll> logger;
 
-    public ValuesPoll(SerialConnection serial, IHubContext<ProfileHub> hub, ILogger<ValuesPoll> logger)
+    private ValuesPollOptions options;
+
+    public ValuesPoll(SerialConnection serial, IHubContext<ProfileHub> hub, IOptionsMonitor<ValuesPollOptions> options, ILogger<ValuesPoll> logger)
     {
         this.serial = serial;
         this.hub = hub;
         this.logger = logger;
+        this.options = options.CurrentValue;
+        options.OnChange(o => this.options = o);
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        timer = new Timer(UpdateValues, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(100));
-        return Task.CompletedTask;
+        while (!serial.Connected) await Task.Delay(TimeSpan.FromSeconds(1));
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            await UpdateValues();
+            await Task.Delay(TimeSpan.FromMilliseconds(options.PollingDelay));
+        }
     }
 
-    private async void UpdateValues(object state)
+    private async Task UpdateValues()
     {
         if (!serial.Connected || serial.Busy) return;
 
@@ -31,16 +41,5 @@ public class ValuesPoll : IHostedService, IDisposable
         int[] values = await serial.GetValues();
         logger.LogDebug(String.Join(',', values));
         await hub.Clients.All.SendAsync("values", values);
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        timer?.Change(Timeout.Infinite, 0);
-        return Task.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-        timer?.Dispose();
     }
 }
