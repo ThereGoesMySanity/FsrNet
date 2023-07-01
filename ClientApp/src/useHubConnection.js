@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { HubConnectionBuilder } from '@microsoft/signalr'
+import { MAX_SIZE } from './constants.js'
+
 function useHubConnection({defaults, onCloseWs}) {
   const [isWsReady, setIsWsReady] = useState(false);
   // Some values such as sensor readings are stored in a mutable array in a ref so that
