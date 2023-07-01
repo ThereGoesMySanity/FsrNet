@@ -1,0 +1,39 @@
+using FsrNet.Models;
+using FsrNet.Services;
+using Microsoft.AspNetCore.SignalR;
+
+namespace FsrNet.Controllers;
+
+public class ProfileHub : Hub
+{
+    private readonly ProfileStore store;
+
+    public ProfileHub(ProfileStore store)
+    {
+        this.store = store;
+    }
+    public async Task UpdateThreshold(int[] values, int index)
+    {
+        await store.SetThreshold(index, values);
+    }
+    public async Task UpdateImage(string image)
+    {
+        await store.SetImage(image);
+    }
+    public async Task RemoveImage(string image)
+    {
+        await store.RemoveImage(image);
+    }
+    public async Task AddProfile(string name, Profile profile)
+    {
+        await store.AddProfile(name, profile);
+    }
+    public async Task RemoveProfile(string name)
+    {
+        await store.RemoveProfile(name);
+    }
+    public async Task ChangeProfile(string name)
+    {
+        await store.SetCurrentProfile(name);
+    }
+}

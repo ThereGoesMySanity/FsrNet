@@ -1,0 +1,36 @@
+.ss-outer {
+    height: 100%;
+    flex-grow: 1;
+    overflow: scroll;
+}
+.ss-category {
+    display: flex;
+    align-content: center;
+    flex-direction:column;
+}
+.ss-cat-inner {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+}
+.ss-list-item {
+    padding: 6px;
+    border-radius: 8px;
+    border: 2px;
+    border-color: gray;
+    border-style: solid;
+    background-color: #a6a6a6;
+    margin: 4px;
+    color: #282828;
+    max-width: 100%;
+}
+.ss-list-item img {
+    width: 640px;
+    max-width: 100%;
+}
+.profile-list {
+    height: 100%;
+    background-color: white;
+    font-size: large;
+}
