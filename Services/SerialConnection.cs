@@ -11,8 +11,10 @@ public class SerialConnection : IDisposable
     private SerialConnectionOptions options;
     private SemaphoreSlim serial;
 
-    public bool Connected => _socket != null && _socket.IsOpen;
+    public bool Connected => _socket?.IsOpen ?? false;
     public bool Busy => serial.CurrentCount == 0;
+
+    public event Action OnConnected;
 
     public SerialConnection(IOptionsMonitor<SerialConnectionOptions> options)
     {
@@ -48,6 +50,7 @@ public class SerialConnection : IDisposable
                 WriteTimeout = options.Timeout
             };
             _socket.Open();
+            OnConnected?.Invoke();
         }
     }
     private void socketCreated(object source, FileSystemEventArgs e)
@@ -68,7 +71,8 @@ public class SerialConnection : IDisposable
         if (!Connected) return null;
         await serial.WaitAsync();
 
-        if (_socket.BytesToRead > 0) _socket.DiscardInBuffer();
+        //clear data from buffer before write
+        _socket.ReadExisting();
         _socket.WriteLine(type);
 
         var vals = _socket.ReadLine()
@@ -97,6 +101,7 @@ public class SerialConnection : IDisposable
 
         _socket.WriteLine($"g {gif.Length}");
         await gif.CopyToAsync(_socket.BaseStream);
+        _socket.ReadLine();
 
         serial.Release();
     }

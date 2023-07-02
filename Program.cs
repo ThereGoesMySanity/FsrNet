@@ -14,6 +14,7 @@ builder.Services.AddSignalR();
 builder.Services.AddSingleton<SerialConnection>();
 builder.Services.AddSingleton<ImageStore>();
 builder.Services.AddSingleton<ProfileStore>();
+builder.Services.AddSingleton<HubDataStore>();
 builder.Services.AddHostedService<ValuesPoll>();
 builder.Services.AddControllersWithViews();
 

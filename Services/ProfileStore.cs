@@ -20,6 +20,18 @@ public class ProfileStore : IDisposable
         Hub = hub;
         this.env = env;
         _profileData = Load();
+        if (serial.Connected) SerialInit();
+        serial.OnConnected += SerialInit;
+    }
+
+    public async void SerialInit()
+    {
+        await SetImage(_profileData.CurrentProfile.Image);
+        var thresholds = _profileData.CurrentProfile.Thresholds;
+        for (int i = 0; i < thresholds.Length; i++)
+        {
+            await SetThreshold(i, thresholds);
+        }
     }
 
     public Defaults GetDefaults()

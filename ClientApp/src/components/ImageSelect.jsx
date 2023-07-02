@@ -37,7 +37,7 @@ function ImageSelect({emit, defaults, wsRef}) {
   const callbacks = {updateImage, removeImage};
 
   return (
-    <header className="App-header">
+    <header className="App-header" style={{overflow: "auto"}}>
       <ListGroup style={{width: "60%"}}>
         {curImage && <ImageSelectItem key={curImage} image={curImage} active callbacks={callbacks}/>}
         {images && images.filter(i => i !== curImage)

@@ -7,10 +7,22 @@ namespace FsrNet.Controllers;
 public class ProfileHub : Hub
 {
     private readonly ProfileStore store;
+    private readonly HubDataStore dataStore;
 
-    public ProfileHub(ProfileStore store)
+    public ProfileHub(ProfileStore store, HubDataStore dataStore)
     {
         this.store = store;
+        this.dataStore = dataStore;
+    }
+    public override Task OnConnectedAsync()
+    {
+        dataStore.ConnectedCount++;
+        return base.OnConnectedAsync();
+    }
+    public override Task OnDisconnectedAsync(Exception exception)
+    {
+        dataStore.ConnectedCount--;
+        return base.OnDisconnectedAsync(exception);
     }
     public async Task UpdateThreshold(int[] values, int index)
     {

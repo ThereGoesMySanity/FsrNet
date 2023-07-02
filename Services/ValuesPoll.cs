@@ -9,14 +9,16 @@ public class ValuesPoll : BackgroundService, IDisposable
 {
     private readonly SerialConnection serial;
     private readonly IHubContext<ProfileHub> hub;
+    private readonly HubDataStore hubData;
     private readonly ILogger<ValuesPoll> logger;
 
     private ValuesPollOptions options;
 
-    public ValuesPoll(SerialConnection serial, IHubContext<ProfileHub> hub, IOptionsMonitor<ValuesPollOptions> options, ILogger<ValuesPoll> logger)
+    public ValuesPoll(SerialConnection serial, IHubContext<ProfileHub> hub, HubDataStore hubData, IOptionsMonitor<ValuesPollOptions> options, ILogger<ValuesPoll> logger)
     {
         this.serial = serial;
         this.hub = hub;
+        this.hubData = hubData;
         this.logger = logger;
         this.options = options.CurrentValue;
         options.OnChange(o => this.options = o);
@@ -28,7 +30,7 @@ public class ValuesPoll : BackgroundService, IDisposable
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            await UpdateValues();
+            if (hubData.ConnectedCount > 0) await UpdateValues();
             await Task.Delay(TimeSpan.FromMilliseconds(options.PollingDelay));
         }
     }
