@@ -30,5 +30,7 @@ app.MapFallbackToFile("index.html");
 
 app.MapHub<ProfileHub>("/profilehub");
 
+//start serial connection
+app.Services.GetRequiredService<SerialConnection>();
 
 app.Run();
