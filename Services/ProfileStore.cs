@@ -39,7 +39,7 @@ public class ProfileStore : IDisposable
         return new Defaults
         {
             Profiles = _profileData.Profiles.Keys.ToArray(),
-            Images = images.GetImageNames(),
+            Images = serial.ImagesEnabled? images.GetImageNames() : null,
             CurrentProfile = _profileData.CurrentProfileName,
             Data = _profileData.CurrentProfile,
         };
@@ -54,6 +54,8 @@ public class ProfileStore : IDisposable
 
     public async Task SetImage(string image)
     {
+        if (!serial.ImagesEnabled) return;
+
         var file = images.GetImageInfo(image);
         if(file.Exists)
         {
@@ -65,6 +67,8 @@ public class ProfileStore : IDisposable
     }
     public async Task RemoveImage(string image)
     {
+        if (!serial.ImagesEnabled) return;
+
         images.RemoveImage(image);
         if (image == _profileData.CurrentProfile.Image)
         {
@@ -102,7 +106,7 @@ public class ProfileStore : IDisposable
     {
         foreach (var prop in typeof(Profile).GetProperties())
         {
-            await Broadcast(prop.Name.ToLower(), prop.GetValue(_profileData.CurrentProfile));
+            await Broadcast(prop.Name.ToLower(), prop.GetValue(_profileData.CurrentProfile)!);
         }
     }
 
@@ -117,7 +121,7 @@ public class ProfileStore : IDisposable
         }
         else
         {
-            data = JsonConvert.DeserializeObject<ProfileData>(System.IO.File.ReadAllText(file.PhysicalPath));
+            data = JsonConvert.DeserializeObject<ProfileData>(File.ReadAllText(file.PhysicalPath!))!;
             foreach (Profile p in data.Profiles.Values)
                 if (p.Image == null || !images.GetImageInfo(p.Image).Exists)
                     data.CurrentProfile.Image = "default.gif";
@@ -126,7 +130,7 @@ public class ProfileStore : IDisposable
     }
     public void Save(ProfileData value)
     {
-        System.IO.File.WriteAllText(Path.Join(env.WebRootPath, "profiles.json"), JsonConvert.SerializeObject(value));
+        File.WriteAllText(Path.Join(env.WebRootPath, "profiles.json"), JsonConvert.SerializeObject(value));
     }
 
     public void Dispose()

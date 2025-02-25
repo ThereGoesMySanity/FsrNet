@@ -2,5 +2,5 @@ namespace FsrNet.Options;
 
 public class LocalProfileOptions
 {
-    public required string LocalProfilesPath { get; set; }
+    public string? LocalProfilesPath { get; set; }
 }

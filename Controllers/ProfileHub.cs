@@ -19,7 +19,7 @@ public class ProfileHub : Hub
         dataStore.ConnectedCount++;
         return base.OnConnectedAsync();
     }
-    public override Task OnDisconnectedAsync(Exception exception)
+    public override Task OnDisconnectedAsync(Exception? exception)
     {
         dataStore.ConnectedCount--;
         return base.OnDisconnectedAsync(exception);

@@ -4,17 +4,8 @@ import { Upload } from 'react-bootstrap-icons'
 
 import ImageSelectItem from "./ImageSelectItem";
 
-function ImageSelect({emit, defaults, wsRef}) {
-  const [images, setImages] = useState(defaults.images);
-  const [curImage, setCurImage] = useState(defaults.data.image);
+function ImageSelect({emit, useImages}) {
   const fileInputRef = useRef(null);
-
-  function updateImage(img) {
-    emit('updateImage', img);
-  }
-  function removeImage(img) {
-    emit('removeImage', img);
-  }
   function handleChange() {
     let data = new FormData();
     data.append('img', fileInputRef.current.files[0]);
@@ -23,18 +14,17 @@ function ImageSelect({emit, defaults, wsRef}) {
       body: data
     });
   }
+  if (useImages === null) return false;
+  let {images, curImage} = useImages;
 
-  useEffect(() => {
-    wsRef.current.on("images", setImages);
-    wsRef.current.on("image", setCurImage);
-
-    return () => {
-      wsRef.current.off("images");
-      wsRef.current.off("image");
-    }
-  }, [images, wsRef]);
-
+  function updateImage(img) {
+    emit('updateImage', img);
+  }
+  function removeImage(img) {
+    emit('removeImage', img);
+  }
   const callbacks = {updateImage, removeImage};
+
 
   return (
     <header className="App-header" style={{overflow: "auto"}}>

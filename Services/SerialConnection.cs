@@ -6,19 +6,20 @@ namespace FsrNet.Services;
 
 public class SerialConnection : IDisposable
 {
-    private SerialPort _socket;
-    private FileSystemWatcher _watcher;
+    private SerialPort? _socket;
+    private FileSystemWatcher? _watcher;
     private SerialConnectionOptions options;
     private SemaphoreSlim serial;
 
     public bool Connected => _socket?.IsOpen ?? false;
-    public bool Busy => serial.CurrentCount == 0;
+    public bool ImagesEnabled => options.ImagesEnabled;
 
-    public event Action OnConnected;
+    public event Action? OnConnected;
 
     public SerialConnection(IOptionsMonitor<SerialConnectionOptions> options)
     {
         serial = new SemaphoreSlim(1);
+        this.options = options.CurrentValue;
         initSocket(options.CurrentValue);
         options.OnChange(initSocket);
     }
@@ -29,7 +30,7 @@ public class SerialConnection : IDisposable
 
         if (Connected) 
         {
-            _socket.Close();
+            _socket?.Close();
         }
         _socket = null;
 
@@ -37,7 +38,7 @@ public class SerialConnection : IDisposable
 
         if (!File.Exists(options.SerialPort))
         {
-            _watcher = new FileSystemWatcher(Path.GetDirectoryName(options.SerialPort));
+            _watcher = new FileSystemWatcher(Path.GetDirectoryName(options.SerialPort)!);
             _watcher.NotifyFilter = NotifyFilters.FileName;
             _watcher.EnableRaisingEvents = true;
             _watcher.Created += socketCreated;
@@ -57,22 +58,25 @@ public class SerialConnection : IDisposable
     {
         if (e.FullPath == options.SerialPort)
         {
-            _watcher.Dispose();
+            _watcher?.Dispose();
             _watcher = null;
             initSocket(options);
         }
     }
 
-    public async Task<int[]> GetValues() => await Get("v");
-    public async Task<int[]> GetThresholds() => await Get("t");
+    public async Task<int[]?> TryGetValues() => await Get("v");
+    public async Task<int[]> GetValues() => (await Get("v"))!;
+    public async Task<int[]> GetThresholds() => (await Get("t"))!;
 
-    private async Task<int[]> Get(string type)
+    private async Task<int[]?> Get(string type, bool blocking = true)
     {
         if (!Connected) return null;
+        if (!blocking && serial.CurrentCount == 0) return null;
+
         await serial.WaitAsync();
 
         //clear data from buffer before write
-        _socket.ReadExisting();
+        _socket!.ReadExisting();
         _socket.WriteLine(type);
 
         var vals = _socket.ReadLine()
@@ -89,17 +93,17 @@ public class SerialConnection : IDisposable
     {
         if (!Connected) return;
         await serial.WaitAsync();
-        _socket.WriteLine($"{index} {threshold}");
+        _socket!.WriteLine($"{index} {threshold}");
         serial.Release();
     }
 
     public async Task WriteGif(Stream gif)
     {
-        if (!Connected) return;
+        if (!Connected || !options.ImagesEnabled) return;
 
         await serial.WaitAsync();
 
-        _socket.WriteLine($"g {gif.Length}");
+        _socket!.WriteLine($"g {gif.Length}");
         await gif.CopyToAsync(_socket.BaseStream);
         _socket.ReadLine();
 

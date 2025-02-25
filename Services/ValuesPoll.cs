@@ -37,11 +37,13 @@ public class ValuesPoll : BackgroundService, IDisposable
 
     private async Task UpdateValues()
     {
-        if (!serial.Connected || serial.Busy) return;
+        if (!serial.Connected) return;
 
         logger.LogDebug("Fetching values...");
-        int[] values = await serial.GetValues();
-        logger.LogDebug(String.Join(',', values));
+        int[]? values = await serial.TryGetValues();
+        if (values is null) return;
+
+        logger.LogDebug(string.Join(',', values));
         await hub.Clients.All.SendAsync("values", values);
     }
 }

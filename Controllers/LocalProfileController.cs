@@ -13,10 +13,11 @@ public class LocalProfileController : ControllerBase
     {
         _options = options;
     }
+
     [HttpGet("/api/local-profiles")]
-    public Dictionary<string, string> GetLocalProfiles()
+    public Dictionary<string, string>? GetLocalProfiles()
     {
-        string basepath = _options.Value.LocalProfilesPath;
+        string? basepath = _options.Value.LocalProfilesPath;
         if (!Path.Exists(basepath)) return null;
 
         return Directory.EnumerateFileSystemEntries(basepath)
@@ -29,9 +30,9 @@ public class LocalProfileController : ControllerBase
     }
 
     [HttpGet("/api/local-profiles/{id}")]
-    public Dictionary<string, string[]> GetLocalProfile(string id)
+    public Dictionary<string, string[]>? GetLocalProfile(string id)
     {
-        string basepath = _options.Value.LocalProfilesPath;
+        string? basepath = _options.Value.LocalProfilesPath;
         if (!Path.Exists(basepath)) return null;
 
         var opts = new EnumerationOptions { AttributesToSkip = FileAttributes.Directory | FileAttributes.Hidden | FileAttributes.System};
@@ -41,14 +42,17 @@ public class LocalProfileController : ControllerBase
         return Directory.EnumerateDirectories(sspath, "*", SearchOption.AllDirectories)
                 .Select(d => (Path.GetRelativePath(sspath, d), 
                     Directory.GetFileSystemEntries(d, "*", opts)
-                            .Select(Path.GetFileName).ToArray()))
+                            .Select(d => Path.GetFileName(d))
+                            .OrderByDescending(d => System.IO.File.GetCreationTime(d))
+                            .ToArray()))
                 .Where(t => t.Item2.Length > 0)
                 .ToDictionary(t => t.Item1, t => t.Item2);
     }
     [HttpGet("/api/screenshots/{id}/{**path}")]
     public IActionResult GetScreenshot(string id, string path)
     {
-        string basepath = _options.Value.LocalProfilesPath;
+        string? basepath = _options.Value.LocalProfilesPath;
+        if (!Path.Exists(basepath)) return NotFound();
 
         var file = Path.Combine(basepath, id, "Screenshots", "Simply_Love", path);
         if (!System.IO.File.Exists(file) || Path.GetExtension(file) != ".png")

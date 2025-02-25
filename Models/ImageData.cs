@@ -1,6 +1,6 @@
 namespace FsrNet.Models;
 public class ImageData
 {
-    public string CurImage { get; set; }
-    public IEnumerable<string> Images { get; set; }
+    public required string CurImage { get; set; }
+    public required IEnumerable<string> Images { get; set; }
 }

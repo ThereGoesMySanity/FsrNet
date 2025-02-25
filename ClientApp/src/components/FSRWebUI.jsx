@@ -19,12 +19,17 @@ import {
 } from "react-router-dom";
 
 import { useState, useEffect } from "react";
+import useImages from "../useImages";
+import useLocalProfiles from "../useLocalProfiles";
 
 function FSRWebUI(props) {
   const { emit, defaults, webUIDataRef, wsRef} = props;
   const numSensors = defaults.data.thresholds.length;
   const [profiles, setProfiles] = useState(defaults.profiles);
   const [activeProfile, setActiveProfile] = useState(defaults.currentProfile);
+  const images = useImages(defaults, wsRef);
+  const localProfiles = useLocalProfiles(activeProfile);
+
   useEffect(() => {
     const ws = wsRef.current;
 
@@ -65,7 +70,7 @@ function FSRWebUI(props) {
     profile_name = profile_name.replace('X ', '');
     emit('changeProfile', profile_name);
   }
-
+  
   return (
     <div className="App">
       <Router>
@@ -75,12 +80,16 @@ function FSRWebUI(props) {
             <Nav.Item>
               <Nav.Link as={Link} to="/plot">Plot</Nav.Link>
             </Nav.Item>
+            {images !== null &&
             <Nav.Item>
               <Nav.Link as={Link} to="/image-select">GIFs</Nav.Link>
             </Nav.Item>
+            }
+            {localProfiles !== null &&
             <Nav.Item>
               <Nav.Link as={Link} to="/browse-screenshots">Screenshots</Nav.Link>
             </Nav.Item>
+            }
           </Nav>
           <Nav className="ms-auto">
             <NavDropdown align="end" title="Profile" id="collasible-nav-dropdown">
@@ -124,10 +133,10 @@ function FSRWebUI(props) {
             <Plot numSensors={numSensors} webUIDataRef={webUIDataRef} />
           }/>
           <Route path="/image-select" element={
-            <ImageSelect emit={emit} defaults={defaults} wsRef={wsRef}/>
+            <ImageSelect emit={emit} useImages={images}/>
           }/>
           <Route path="/browse-screenshots" element={
-            <BrowseScreenshots activeProfile={activeProfile} />
+            <BrowseScreenshots useLocalProfiles={localProfiles} />
           }/>
         </Routes>
       </Router>
