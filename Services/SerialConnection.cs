@@ -113,5 +113,6 @@ public class SerialConnection : IDisposable
     public void Dispose()
     {
         _socket?.Dispose();
+        _watcher?.Dispose();
     }
 }

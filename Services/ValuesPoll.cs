@@ -31,7 +31,7 @@ public class ValuesPoll : BackgroundService, IDisposable
         while (!cancellationToken.IsCancellationRequested)
         {
             if (hubData.ConnectedCount > 0) await UpdateValues();
-            await Task.Delay(TimeSpan.FromMilliseconds(options.PollingDelay));
+            await Task.Delay(TimeSpan.FromMilliseconds(options.PollingDelay), cancellationToken);
         }
     }
 
@@ -43,7 +43,7 @@ public class ValuesPoll : BackgroundService, IDisposable
         int[]? values = await serial.TryGetValues();
         if (values is null) return;
 
-        logger.LogDebug(string.Join(',', values));
+        logger.LogDebug("{}", string.Join(',', values));
         await hub.Clients.All.SendAsync("values", values);
     }
 }
