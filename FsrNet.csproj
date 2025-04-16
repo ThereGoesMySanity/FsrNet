@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="9.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="System.IO.Ports" Version="9.0.2" />
+    <PackageReference Include="System.IO.Ports" Version="9.0.4" />
   </ItemGroup>
 
   <ItemGroup>

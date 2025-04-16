@@ -26,24 +26,24 @@ public class ValuesPoll : BackgroundService, IDisposable
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        while (!serial.Connected) await Task.Delay(TimeSpan.FromSeconds(1));
-
         while (!cancellationToken.IsCancellationRequested)
         {
-            if (hubData.ConnectedCount > 0) await UpdateValues();
-            await Task.Delay(TimeSpan.FromMilliseconds(options.PollingDelay), cancellationToken);
+            if (hubData.ConnectedCount > 0) await UpdateValues(cancellationToken);
+
+            var delay = serial.Connected? TimeSpan.FromMilliseconds(options.PollingDelay) : TimeSpan.FromSeconds(1);
+            await Task.Delay(delay, cancellationToken);
         }
     }
 
-    private async Task UpdateValues()
+    private async Task UpdateValues(CancellationToken cancellationToken)
     {
         if (!serial.Connected) return;
 
         logger.LogDebug("Fetching values...");
-        int[]? values = await serial.TryGetValues();
+        int[]? values = await serial.TryGetValues(cancellationToken);
         if (values is null) return;
 
         logger.LogDebug("{}", string.Join(',', values));
-        await hub.Clients.All.SendAsync("values", values);
+        await hub.Clients.All.SendAsync("values", values, cancellationToken);
     }
 }
